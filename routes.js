@@ -1,5 +1,5 @@
 const passport = require('passport');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 module.exports = function (app, myDataBase) {
   app.route('/').get((req, res) => {
@@ -7,7 +7,16 @@ module.exports = function (app, myDataBase) {
       title: 'Connected to Database', 
       message: 'Please log in',
       showLogin: true,
-      showRegistration: true
+      showRegistration: true,
+      showSocialAuth: true
+    });
+  });
+
+  app.route('/chat').get(
+    ensureAuthenticated, //ensure is logged in
+    (req, res) => {
+      res.render('chat', { 
+        user: req.user
     });
   });
 
@@ -17,6 +26,16 @@ module.exports = function (app, myDataBase) {
       res.render('profile', {
         username: req.user.username
       });
+    }
+  );
+
+  app.route('/auth/github').get(passport.authenticate('github'));
+
+  app.route('/auth/github/callback').get(
+    passport.authenticate('github', { failureRedirect: '/' }), 
+    (req,res) => {
+      req.session.user_id = req.user.id;
+      res.redirect('/chat');
     }
   );
 
