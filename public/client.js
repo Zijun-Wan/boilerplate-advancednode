@@ -1,3 +1,13 @@
+const userColors = {};
+
+function getColorForUser(username) {
+  if (!userColors[username]) {
+    const colors = ['AliceBlue', 'Cornsilk', 'Lavender', 'LavenderBlush', 'HoneyDew', 'LightYellow', 'MistyRose', 'PeachPuff', 'PowderBlue'];
+    userColors[username] = colors[Object.keys(userColors).length % colors.length];
+  }
+  return userColors[username];
+}
+
 $(document).ready(function () {
   /*global io*/
   let socket = io();
@@ -8,11 +18,18 @@ $(document).ready(function () {
       data.username + ' has ' +
       (data.connected ? 'joined ' : 'left ') +
       'the chat.';
-    $('#messages').append($('<li>').html('<b>' + message + '</b>'));
+    $('#messages').append($('<li>').addClass("joining").html('<b>' + message + '</b>'));
   });
 
   socket.on('chat message', data => {
-    $('#messages').append($('<li>').html(data.username + ': ' + data.message));
+    const color = getColorForUser(data.username);
+    const $msg = $('<li>')
+      .css('background-color', color)
+      .html(`${data.username}: ${data.message}`);
+    $('#messages').append($msg);
+
+    const messagesContainer = document.getElementById('messages');
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
   })
 
   // Form submittion with new message in field with id 'm'
